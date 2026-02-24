@@ -27,7 +27,7 @@ import os
 import logging
 import unittest
 from decimal import Decimal
-from service.models import Product, Category, db
+from service.models import Product, Category, db, DataValidationError
 from service import app
 from tests.factories import ProductFactory
 
@@ -189,14 +189,54 @@ class TestProductModel(unittest.TestCase):
     def test_no_id_updating(self):
         """It should raise error when updating a product with empty ID"""
         product = ProductFactory()
-        product.id = 0
-        product.create()
-        product.description = "testing"
-        original_id = product.id
-        product.update()
-        self.assertEqual(product.id, original_id)
-        self.assertEqual(product.description, "testing")
-        products = Product.all()
-        self.assertEqual(len(products), 1)
-        self.assertEqual(products[0].id, original_id)
-        self.assertEqual(products[0].description, "testing")
+        product.id = None
+        self.assertRaises(DataValidationError, product.update)
+
+    def test_no_boolean_type_available(self):
+        """It should raise error when deserialize a product and the available value is not boolean"""
+        product = ProductFactory()
+        productData = {
+            "name" : "foo",
+            "description" : "foo description",
+            "price" : 2.9,
+            "available" : 3.14,
+            "category" : "FOOD"
+        }
+        self.assertRaises(DataValidationError, product.deserialize, productData)
+
+    def test_invalid_attribute_deserializing(self):
+        """It should raise error when deserailize an invalidad attribute"""
+        product = ProductFactory()
+        productData = {
+            "name" : "foo",
+            "description" : "foo description",
+            "price" : 19,
+            "available" : True,
+            "category" : "SOMETACOS"
+        }
+        self.assertRaises(DataValidationError, product.deserialize, productData)
+
+    def test_invalid_type_deserializing(self):
+        """It should raise error when deserailize an invalid type"""
+        product = ProductFactory()
+        self.assertRaises(DataValidationError, product.deserialize, None)
+
+    def test_find_by_price(self):
+        """It should looks by price"""
+        products = ProductFactory.create_batch(10)
+        for product in products:
+            product.create()
+        price = products[0].price
+        count = len([product for product in products if product.price == price])
+        found = Product.find_by_price(price)
+        self.assertEqual(found.count(), count)
+        for product in found:
+            self.assertEqual(product.price, price)
+            
+    def test_find_by_str_price(self):
+        """It should looks by string price"""
+        product = ProductFactory()
+        product.price = 15.5
+        found = Product.find_by_price("15.5")
+        for product_founded in found:
+            self.assertEqual(product_founded.price, product.price)
