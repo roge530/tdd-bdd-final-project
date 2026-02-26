@@ -107,7 +107,7 @@ class TestProductModel(unittest.TestCase):
     def test_read_a_product(self):
         """It should read a product"""
         product = ProductFactory()
-        product_id = None
+        product.id = None
         product.create()
         self.assertIsNotNone(product.id)
         found_product = Product.find(product.id)
@@ -115,7 +115,7 @@ class TestProductModel(unittest.TestCase):
         self.assertEqual(found_product.name, product.name)
         self.assertEqual(found_product.description, product.description)
         self.assertEqual(found_product.price, product.price)
-    
+
     def test_update_a_product(self):
         """It should update a product"""
         product = ProductFactory()
@@ -149,7 +149,7 @@ class TestProductModel(unittest.TestCase):
             product.create()
         products = Product.all()
         self.assertEqual(len(products), 5)
-    
+
     def test_find_by_name(self):
         """It should find a product by name"""
         products = ProductFactory.create_batch(5)
@@ -161,7 +161,7 @@ class TestProductModel(unittest.TestCase):
         self.assertEqual(found.count(), count)
         for product in found:
             self.assertEqual(product.name, name)
-    
+
     def test_find_by_availability(self):
         """It should find products by availability"""
         products = ProductFactory.create_batch(10)
@@ -173,7 +173,7 @@ class TestProductModel(unittest.TestCase):
         self.assertEqual(found.count(), count)
         for product in found:
             self.assertEqual(product.available, available)
-    
+
     def test_find_by_category(self):
         """It should find products by category"""
         products = ProductFactory.create_batch(10)
@@ -195,26 +195,26 @@ class TestProductModel(unittest.TestCase):
     def test_no_boolean_type_available(self):
         """It should raise error when deserialize a product and the available value is not boolean"""
         product = ProductFactory()
-        productData = {
-            "name" : "foo",
-            "description" : "foo description",
-            "price" : 2.9,
-            "available" : 3.14,
-            "category" : "FOOD"
+        product_data = {
+            "name": "foo",
+            "description": "foo description",
+            "price": 2.9,
+            "available": 3.14,
+            "category": "FOOD"
         }
-        self.assertRaises(DataValidationError, product.deserialize, productData)
+        self.assertRaises(DataValidationError, product.deserialize, product_data)
 
     def test_invalid_attribute_deserializing(self):
         """It should raise error when deserailize an invalidad attribute"""
         product = ProductFactory()
-        productData = {
-            "name" : "foo",
-            "description" : "foo description",
-            "price" : 19,
-            "available" : True,
-            "category" : "SOMETACOS"
+        product_data = {
+            "name": "foo",
+            "description": "foo description",
+            "price": 19,
+            "available": True,
+            "category": "SOMETACOS"
         }
-        self.assertRaises(DataValidationError, product.deserialize, productData)
+        self.assertRaises(DataValidationError, product.deserialize, product_data)
 
     def test_invalid_type_deserializing(self):
         """It should raise error when deserailize an invalid type"""
@@ -232,7 +232,7 @@ class TestProductModel(unittest.TestCase):
         self.assertEqual(found.count(), count)
         for product in found:
             self.assertEqual(product.price, price)
-            
+
     def test_find_by_str_price(self):
         """It should looks by string price"""
         product = ProductFactory()
